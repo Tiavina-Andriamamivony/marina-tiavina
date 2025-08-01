@@ -15,4 +15,4 @@ RUN npm install express
 
 EXPOSE 5000
 
-CMD ["node", "app/server.js"]
+CMD ["node", "src/server.js"]
