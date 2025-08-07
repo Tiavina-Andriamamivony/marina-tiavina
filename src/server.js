@@ -1,37 +1,40 @@
 const express = require('express');
-const { execFile } = require('child_process');
-
+const { spawn } = require('child_process');
 const app = express();
+const port = 3000;
 
 app.get('/marina', (req, res) => {
-    let laza = req.query.laza;
-
+    const laza = req.query.laza;
+    
     if (!laza) {
         return res.status(400).json({ error: "Missing 'laza' parameter" });
     }
 
-    laza = laza.trim();
-    if ((laza.startsWith("'") && laza.endsWith("'")) || (laza.startsWith('"') && laza.endsWith('"'))) {
-        laza = laza.slice(1, -1);
-    }
+    const marinaProcess = spawn('./marina', [laza]);
+    
+    let result = '';
+    let errorOutput = '';
 
-    const open = (laza.match(/\(/g) || []).length;
-    const close = (laza.match(/\)/g) || []).length;
-    if (open !== close) {
-        return res.status(400).json({ error: "Unbalanced parentheses in formula" });
-    }
+    marinaProcess.stdout.on('data', (data) => {
+        result += data.toString();
+    });
 
-    execFile('./marina', [laza], (error, stdout, stderr) => {
-        if (error) {
-            return res.status(500).json({ error: stderr || error.message });
+    marinaProcess.stderr.on('data', (data) => {
+        errorOutput += data.toString();
+    });
+
+    marinaProcess.on('close', (code) => {
+        if (code !== 0) {
+            return res.status(500).json({ error: errorOutput.trim() });
         }
+        res.json({ result: result.trim() });
+    });
 
-        const result = stdout.trim();
-        res.json({ result });
+    marinaProcess.on('error', (err) => {
+        res.status(500).json({ error: err.message });
     });
 });
 
-const port = process.env.PORT || 5000;
 app.listen(port, '0.0.0.0', () => {
     console.log(`Server running on http://0.0.0.0:${port}`);
 });

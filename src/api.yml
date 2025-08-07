@@ -1,0 +1,59 @@
+openapi: 3.0.0
+info:
+  title: Marina API
+  description: API pour exécuter le programme Marina
+  version: 1.0.0
+servers:
+  - url: https://marina-tiavina.onrender.com/
+    description: Serveur de développement
+
+paths:
+  /marina:
+    get:
+      summary: Exécute le programme Marina
+      description: |
+        Exécute le binaire `marina` avec le paramètre fourni
+        et retourne le résultat de l'exécution.
+      parameters:
+        - name: laza
+          in: query
+          description: Paramètre d'entrée pour le programme Marina
+          required: true
+          schema:
+            type: string
+          example: "input_data"
+      responses:
+        '200':
+          description: Succès de l'exécution
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  result:
+                    type: string
+                    description: Résultat de l'exécution
+                example:
+                  result: "output_data"
+        '400':
+          description: Paramètre manquant
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                example:
+                  error: "Missing 'laza' parameter"
+        '500':
+          description: Erreur d'exécution
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                example:
+                  error: "Error message from marina"
